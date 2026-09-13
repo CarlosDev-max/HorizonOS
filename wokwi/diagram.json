@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "author": "CarlosDev-max",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-pico-w",
+      "id": "pico",
+      "top": 0, "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-ili9341",
+      "id": "lcd",
+      "top": -180, "left": 200,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "buzzer",
+      "top": 120, "left": 300,
+      "attrs": { "volume": "0.5" }
+    }
+  ],
+  "connections": [
+    ["pico:GND.1",   "lcd:GND",  "black",  []],
+    ["pico:3V3",     "lcd:VCC",  "red",    []],
+    ["pico:GP18",    "lcd:SCK",  "yellow", []],
+    ["pico:GP19",    "lcd:MOSI", "orange", []],
+    ["pico:GP16",    "lcd:MISO", "purple", []],
+    ["pico:GP17",    "lcd:CS",   "green",  []],
+    ["pico:GP20",    "lcd:DC",   "blue",   []],
+    ["pico:GP21",    "lcd:RST",  "white",  []],
+    ["pico:GP22",    "lcd:BL",   "cyan",   []],
+    ["pico:GP26",    "buzzer:1", "brown",  []],
+    ["pico:GND.3",   "buzzer:2", "black",  []]
+  ],
+  "dependencies": {}
+}
+
