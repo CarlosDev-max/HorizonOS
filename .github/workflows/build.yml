@@ -1,0 +1,44 @@
+name: Build HorizonOS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install ARM toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y cmake gcc-arm-none-eabi \
+            libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib \
+            build-essential python3
+
+      - name: Clone pico-sdk
+        run: |
+          git clone https://github.com/raspberrypi/pico-sdk.git \
+            --depth=1 --branch 2.0.0
+          cd pico-sdk && git submodule update --init --depth=1
+
+      - name: Build (Pico W — Wokwi target)
+        run: |
+          mkdir -p build && cd build
+          cmake .. \
+            -DPICO_SDK_PATH=../pico-sdk \
+            -DPICO_BOARD=pico_w \
+            -DCMAKE_BUILD_TYPE=Release
+          make -j$(nproc)
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: horizonos-firmware
+          path: |
+            build/*.uf2
+            build/*.elf
