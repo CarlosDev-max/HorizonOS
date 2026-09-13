@@ -1,0 +1,28 @@
+# Build
+build/
+*.elf
+*.bin
+*.uf2
+*.map
+*.hex
+*.dis
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# pico-sdk (submodule, not tracked directly)
+pico-sdk/
+
+# Editor
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
