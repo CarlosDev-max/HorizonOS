@@ -2,4 +2,3 @@
 version = 1
 elf = "../build/horizonos.elf"
 firmware = "../build/horizonos.uf2"
-
