@@ -9,5 +9,6 @@ target_link_libraries(kernel
   pico_stdlib
   hardware_flash
   hardware_sync
+  hardware_watchdog
   littlefs_lib
 )
