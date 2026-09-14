@@ -9,6 +9,9 @@ set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
+# Make #include "hal/display.h", "gui/widgets.h", "kernel/scheduler.h" etc. work
+include_directories(${CMAKE_SOURCE_DIR}/src)
+
 # ─── LittleFS ────────────────────────────────────────────────────────────────
 FetchContent_Declare(
   littlefs
@@ -48,11 +51,10 @@ target_link_libraries(horizonos
   hardware_pwm
   hardware_flash
   hardware_dma
+  hardware_watchdog
   pico_cyw43_arch_lwip_threadsafe_background
 )
 
-# USB stdio for UART shell on Wokwi / dev board
 pico_enable_stdio_usb(horizonos 1)
 pico_enable_stdio_uart(horizonos 0)
-
 pico_add_extra_outputs(horizonos)
