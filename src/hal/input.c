@@ -3,8 +3,6 @@
 #include "hardware/gpio.h"
 #include "pico/stdlib.h"
 
-// ─── Button debounce ─────────────────────────────────────────────────────────
-
 #define DEBOUNCE_MS 80
 
 typedef struct {
@@ -25,12 +23,11 @@ void input_init(void) {
     for (uint8_t i = 0; i < N_BTNS; i++) {
         gpio_init(btns[i].pin);
         gpio_set_dir(btns[i].pin, GPIO_IN);
-        gpio_pull_up(btns[i].pin);   // active-low buttons
+        gpio_pull_up(btns[i].pin);
     }
     touch_init();
 }
 
-// Returns INPUT_NONE if nothing happened, or the event on a falling edge.
 InputEvent input_poll(void) {
     uint32_t now = to_ms_since_boot(get_absolute_time());
 
@@ -39,7 +36,7 @@ InputEvent input_poll(void) {
         INPUT_LEFT, INPUT_RIGHT, INPUT_SELECT, INPUT_BACK
     };
     for (uint8_t i = 0; i < N_BTNS; i++) {
-        bool pressed = !gpio_get(btns[i].pin); // active-low
+        bool pressed = !gpio_get(btns[i].pin);
         if (pressed && !btns[i].last && (now - btns[i].last_ms) > DEBOUNCE_MS) {
             btns[i].last    = true;
             btns[i].last_ms = now;
@@ -49,19 +46,14 @@ InputEvent input_poll(void) {
     }
 
     // ── XPT2046 touch (real hardware) ────────────────────────────────────
-    // Simple tap detection: returns SELECT with touch coords stored globally.
-    // TODO: add swipe gesture detection (compare start vs end point).
+    static bool touch_was_pressed = false;  // single declaration
     TouchEvent te;
     if (touch_read(&te) && te.pressed) {
-        // Debounce touch: only fire once per press
-        static bool touch_was_pressed = false;
         if (!touch_was_pressed) {
             touch_was_pressed = true;
-            // Store coords for the GUI to read via touch_last_x / touch_last_y
             return INPUT_SELECT;
         }
     } else {
-        static bool touch_was_pressed = false;
         touch_was_pressed = false;
     }
 
