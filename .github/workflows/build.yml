@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write   # needed to create releases and push tags
+
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -13,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # needed for gh release tag push
 
       - name: Install ARM toolchain
         run: |
@@ -23,39 +28,64 @@ jobs:
           cmake --version
           arm-none-eabi-gcc --version
 
-      - name: Clone pico-sdk (with all submodules)
+      - name: Clone pico-sdk
         run: |
-          # Clone SDK with all submodules in one step (more reliable than two-step)
           git clone \
             --recurse-submodules \
             --shallow-submodules \
             --depth=1 \
             --branch 1.5.1 \
             https://github.com/raspberrypi/pico-sdk.git
-          echo "pico-sdk OK — $(ls pico-sdk/src | wc -l) source dirs"
+          echo "pico-sdk 1.5.1 cloned OK"
 
-      - name: Configure (CMake)
+      - name: Configure
         run: |
-          mkdir -p build
           cmake -S . -B build \
             -DPICO_SDK_PATH="$GITHUB_WORKSPACE/pico-sdk" \
             -DPICO_BOARD=pico_w \
-            -DCMAKE_BUILD_TYPE=Release \
-            2>&1 | tee build/cmake_output.txt
-          echo "CMake exit: $?"
+            -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         run: |
-          cmake --build build --parallel $(nproc) \
-            2>&1 | tee build/make_output.txt
+          cmake --build build --parallel $(nproc)
+          ls -lh build/*.uf2 build/*.elf
 
-      - name: Upload artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: horizonos-build
-          path: |
-            build/cmake_output.txt
-            build/make_output.txt
-            build/*.uf2
-            build/*.elf
+      # ── Publish a rolling "dev" release (only on pushes to main) ──────────
+      - name: Publish release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          COMMIT_SHA="${{ github.sha }}"
+          SHORT_SHA="${COMMIT_SHA:0:7}"
+          BUILD_DATE="$(date -u '+%Y-%m-%d %H:%M UTC')"
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+
+          # Remove old "dev" release + tag so we can recreate it
+          gh release delete dev --yes 2>/dev/null || true
+          git push origin :refs/tags/dev 2>/dev/null || true
+
+          # Create fresh "dev" pre-release with the new .uf2
+          gh release create dev \
+            --title "HorizonOS dev — $SHORT_SHA" \
+            --notes "**Automatic build** from commit \`$SHORT_SHA\`
+
+> $COMMIT_MSG
+
+**Built:** $BUILD_DATE
+**Board (Wokwi):** Raspberry Pi Pico W
+**Flash:** copy \`horizonos.uf2\` to Pico or upload to Wokwi
+
+### Wokwi quick-start
+1. Download \`horizonos.uf2\` below
+2. [wokwi.com](https://wokwi.com) → New Project → Raspberry Pi Pico W
+3. Replace \`diagram.json\` with the one from [wokwi/diagram.json](../../blob/main/wokwi/diagram.json)
+4. Upload the .uf2 → ▶ Play
+5. Blue btn (GP2) = ◄  Green btn (GP3) = ►  Red btn (GP4) = Open" \
+            --prerelease \
+            "build/horizonos.uf2" \
+            "build/horizonos.elf"
+
+          echo ""
+          echo "✅ Release published:"
+          gh release view dev --json url -q .url
