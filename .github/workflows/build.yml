@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write   # needed to create releases and push tags
+  contents: write
 
 jobs:
   build:
@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # needed for gh release tag push
+          fetch-depth: 0
 
       - name: Install ARM toolchain
         run: |
@@ -36,7 +36,7 @@ jobs:
             --depth=1 \
             --branch 1.5.1 \
             https://github.com/raspberrypi/pico-sdk.git
-          echo "pico-sdk 1.5.1 cloned OK"
+          echo "pico-sdk OK"
 
       - name: Configure
         run: |
@@ -50,42 +50,41 @@ jobs:
           cmake --build build --parallel $(nproc)
           ls -lh build/*.uf2 build/*.elf
 
-      # ── Publish a rolling "dev" release (only on pushes to main) ──────────
       - name: Publish release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          COMMIT_SHA="${{ github.sha }}"
-          SHORT_SHA="${COMMIT_SHA:0:7}"
+          SHORT_SHA="${{ github.sha }}"
+          SHORT_SHA="${SHORT_SHA:0:7}"
           BUILD_DATE="$(date -u '+%Y-%m-%d %H:%M UTC')"
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
 
-          # Remove old "dev" release + tag so we can recreate it
+          # Write notes to a file to avoid YAML/bash multiline quoting issues
+          cat > /tmp/notes.md << NOTES_EOF
+          ## HorizonOS dev build
+
+          **Commit:** ${SHORT_SHA}
+          **Built:** ${BUILD_DATE}
+          **Board (Wokwi):** Raspberry Pi Pico W
+
+          ### How to test in Wokwi
+          1. Download \`horizonos.uf2\` below
+          2. Go to [wokwi.com](https://wokwi.com) and create a Raspberry Pi Pico W project
+          3. Replace \`diagram.json\` with the one from the [wokwi/](../../tree/main/wokwi) folder
+          4. Upload the .uf2 and press Play
+          5. **Blue (GP2)** = Navigate left | **Green (GP3)** = Navigate right | **Red (GP4)** = Open app
+          NOTES_EOF
+
+          # Delete old dev release/tag if it exists
           gh release delete dev --yes 2>/dev/null || true
           git push origin :refs/tags/dev 2>/dev/null || true
 
-          # Create fresh "dev" pre-release with the new .uf2
+          # Create the new release
           gh release create dev \
-            --title "HorizonOS dev — $SHORT_SHA" \
-            --notes "**Automatic build** from commit \`$SHORT_SHA\`
-
-> $COMMIT_MSG
-
-**Built:** $BUILD_DATE
-**Board (Wokwi):** Raspberry Pi Pico W
-**Flash:** copy \`horizonos.uf2\` to Pico or upload to Wokwi
-
-### Wokwi quick-start
-1. Download \`horizonos.uf2\` below
-2. [wokwi.com](https://wokwi.com) → New Project → Raspberry Pi Pico W
-3. Replace \`diagram.json\` with the one from [wokwi/diagram.json](../../blob/main/wokwi/diagram.json)
-4. Upload the .uf2 → ▶ Play
-5. Blue btn (GP2) = ◄  Green btn (GP3) = ►  Red btn (GP4) = Open" \
+            --title "HorizonOS dev — ${SHORT_SHA}" \
+            --notes-file /tmp/notes.md \
             --prerelease \
-            "build/horizonos.uf2" \
-            "build/horizonos.elf"
+            build/horizonos.uf2 \
+            build/horizonos.elf
 
-          echo ""
-          echo "✅ Release published:"
-          gh release view dev --json url -q .url
+          echo "Release URL: $(gh release view dev --json url -q .url)"
