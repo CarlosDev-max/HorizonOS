@@ -23,13 +23,16 @@ jobs:
           cmake --version
           arm-none-eabi-gcc --version
 
-      - name: Clone pico-sdk
+      - name: Clone pico-sdk (with all submodules)
         run: |
-          git clone https://github.com/raspberrypi/pico-sdk.git \
-            --depth=1 --branch 2.0.0 --quiet
-          cd pico-sdk && git submodule update --init --depth=1 --quiet
-          echo "pico-sdk at: $(pwd)/pico-sdk"
-          ls pico-sdk/
+          # Clone SDK with all submodules in one step (more reliable than two-step)
+          git clone \
+            --recurse-submodules \
+            --shallow-submodules \
+            --depth=1 \
+            --branch 1.5.1 \
+            https://github.com/raspberrypi/pico-sdk.git
+          echo "pico-sdk OK — $(ls pico-sdk/src | wc -l) source dirs"
 
       - name: Configure (CMake)
         run: |
@@ -39,19 +42,18 @@ jobs:
             -DPICO_BOARD=pico_w \
             -DCMAKE_BUILD_TYPE=Release \
             2>&1 | tee build/cmake_output.txt
-          echo "CMake exit code: $?"
+          echo "CMake exit: $?"
 
       - name: Build
         run: |
           cmake --build build --parallel $(nproc) \
             2>&1 | tee build/make_output.txt
-          echo "Build exit code: $?"
 
-      - name: Upload logs and firmware
+      - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: horizonos-build-output
+          name: horizonos-build
           path: |
             build/cmake_output.txt
             build/make_output.txt
