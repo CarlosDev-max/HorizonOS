@@ -48,16 +48,43 @@ jobs:
       - name: Build
         run: |
           cmake --build build --parallel $(nproc) 2>&1 | tee build/make_output.txt
-          BUILD_EXIT=${PIPESTATUS[0]}
+          echo "exit:${PIPESTATUS[0]}" >> build/make_output.txt
           ls -lh build/*.uf2 build/*.elf 2>/dev/null || true
-          exit $BUILD_EXIT
+          grep -q "exit:0" build/make_output.txt
 
-      - name: Upload build log
+      - name: Push build log to repo
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build/make_output.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.email "ci@horizonos.local"
+          git config user.name "HorizonOS CI"
+          LOG=$(cat build/make_output.txt 2>/dev/null || echo "no log")
+          python3 - << 'PYEOF'
+          import os, json, base64, urllib.request
+          token  = os.environ["GITHUB_TOKEN"]
+          repo   = "CarlosDev-max/HorizonOS"
+          path   = "ci-logs/latest_build.txt"
+          log    = open("build/make_output.txt").read() if os.path.exists("build/make_output.txt") else "no log"
+          b64    = base64.b64encode(log.encode()).decode()
+          url    = f"https://api.github.com/repos/{repo}/contents/{path}"
+          req    = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"})
+          try:
+              existing = json.loads(urllib.request.urlopen(req).read())
+              sha = existing["sha"]
+          except:
+              sha = None
+          payload = {"message": "ci: update build log", "content": b64, "branch": "main"}
+          if sha:
+              payload["sha"] = sha
+          req2 = urllib.request.Request(url, data=json.dumps(payload).encode(), method="PUT",
+                    headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "application/vnd.github+json"})
+          try:
+              result = json.loads(urllib.request.urlopen(req2).read())
+              print("Log pushed:", result.get("content", {}).get("path"))
+          except Exception as e:
+              print("Push failed:", e)
+          PYEOF
 
       - name: Publish release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
