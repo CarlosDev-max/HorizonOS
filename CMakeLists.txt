@@ -18,7 +18,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src/hal)
 FetchContent_Declare(
   littlefs
   GIT_REPOSITORY https://github.com/littlefs-project/littlefs.git
-  GIT_TAG        v2.8.2
+  GIT_TAG        v2.8.0
   GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(littlefs)
