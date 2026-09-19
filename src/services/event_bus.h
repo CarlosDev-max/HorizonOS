@@ -20,4 +20,3 @@ typedef void (*event_handler_t)(const Event* ev);
 void event_bus_subscribe(EventType type, event_handler_t handler);
 void event_bus_publish(const Event* ev);
 void event_bus_tick(void);
-
