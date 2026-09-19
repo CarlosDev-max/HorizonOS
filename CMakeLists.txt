@@ -10,7 +10,9 @@ set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 
 # Make #include "hal/display.h", "gui/widgets.h", "kernel/scheduler.h" etc. work
+# Also expose src/hal/ so lwipopts.h is found by cyw43/lwip
 include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${CMAKE_SOURCE_DIR}/src/hal)
 
 # ─── LittleFS ────────────────────────────────────────────────────────────────
 FetchContent_Declare(
