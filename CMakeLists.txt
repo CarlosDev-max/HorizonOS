@@ -28,7 +28,6 @@ add_library(littlefs_lib STATIC
   ${littlefs_SOURCE_DIR}/lfs_util.c
 )
 target_include_directories(littlefs_lib PUBLIC ${littlefs_SOURCE_DIR})
-target_compile_definitions(littlefs_lib PUBLIC LFS_NO_MALLOC=0)
 
 # ─── OS modules ──────────────────────────────────────────────────────────────
 add_subdirectory(src/kernel)
