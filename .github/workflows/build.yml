@@ -93,34 +93,19 @@ jobs:
         run: |
           SHORT_SHA="${{ github.sha }}"
           SHORT_SHA="${SHORT_SHA:0:7}"
-          BUILD_DATE="$(date -u '+%Y-%m-%d %H:%M UTC')"
 
-          # Write notes to a file to avoid YAML/bash multiline quoting issues
-          cat > /tmp/notes.md << NOTES_EOF
-          ## HorizonOS dev build
-
-          **Commit:** ${SHORT_SHA}
-          **Built:** ${BUILD_DATE}
-          **Board (Wokwi):** Raspberry Pi Pico W
-
-          ### How to test in Wokwi
-          1. Download \`horizonos.uf2\` below
-          2. Go to [wokwi.com](https://wokwi.com) and create a Raspberry Pi Pico W project
-          3. Replace \`diagram.json\` with the one from the [wokwi/](../../tree/main/wokwi) folder
-          4. Upload the .uf2 and press Play
-          5. **Blue (GP2)** = Navigate left | **Green (GP3)** = Navigate right | **Red (GP4)** = Open app
-          NOTES_EOF
-
-          # Delete old dev release/tag if it exists
+          # Delete old release (gh also deletes the tag automatically)
           gh release delete dev --yes 2>/dev/null || true
-          git push origin :refs/tags/dev 2>/dev/null || true
 
-          # Create the new release
+          # Small wait so GitHub processes the deletion
+          sleep 2
+
+          # Create fresh release — gh creates the tag on current HEAD automatically
           gh release create dev \
             --title "HorizonOS dev — ${SHORT_SHA}" \
-            --notes-file /tmp/notes.md \
+            --notes "Automatic build from commit ${SHORT_SHA}. Download horizonos.uf2 for Wokwi CLI or real hardware." \
             --prerelease \
             build/horizonos.uf2 \
             build/horizonos.elf
 
-          echo "Release URL: $(gh release view dev --json url -q .url)"
+          echo "Release: $(gh release view dev --json url -q .url)"
