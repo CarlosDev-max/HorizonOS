@@ -94,8 +94,8 @@ jobs:
           SHORT_SHA="${{ github.sha }}"
           SHORT_SHA="${SHORT_SHA:0:7}"
 
-          # Delete old release (gh also deletes the tag automatically)
-          gh release delete dev --yes 2>/dev/null || true
+          # Delete the old release and its tag before reusing the tag name
+          gh release delete dev --cleanup-tag --yes 2>/dev/null || true
 
           # Small wait so GitHub processes the deletion
           sleep 2
