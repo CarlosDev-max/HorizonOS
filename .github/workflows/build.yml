@@ -109,3 +109,47 @@ jobs:
             build/horizonos.elf
 
           echo "Release: $(gh release view dev --json url -q .url)"
+
+  build-sim:
+    runs-on: ubuntu-22.04
+    needs: build   # only build sim if firmware compiles OK
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install MinGW
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gcc-mingw-w64-x86-64 cmake
+
+      - name: Download SDL2 for MinGW
+        run: |
+          wget -q https://github.com/libsdl-org/SDL/releases/download/release-2.28.5/SDL2-devel-2.28.5-mingw.tar.gz
+          tar xzf SDL2-devel-2.28.5-mingw.tar.gz
+          echo "SDL2_ROOT=$PWD/SDL2-2.28.5/x86_64-w64-mingw32" >> $GITHUB_ENV
+
+      - name: Build Windows simulator
+        run: |
+          cmake sim/ -B build_sim \
+            -DCMAKE_TOOLCHAIN_FILE=sim/cmake/mingw64.cmake \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSDL2_INCLUDE_DIR="$SDL2_ROOT/include" \
+            -DSDL2_LIBRARY="$SDL2_ROOT/lib/libSDL2.dll.a" \
+            -DSDL2_MAIN_LIBRARY="$SDL2_ROOT/lib/libSDL2main.a"
+          cmake --build build_sim --parallel $(nproc)
+          cp $SDL2_ROOT/bin/SDL2.dll build_sim/
+          ls -lh build_sim/horizonos_sim.exe build_sim/SDL2.dll
+
+      - name: Add sim to release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload dev \
+            build_sim/horizonos_sim.exe \
+            build_sim/SDL2.dll \
+            --clobber
+          echo "Simulator uploaded to release"
