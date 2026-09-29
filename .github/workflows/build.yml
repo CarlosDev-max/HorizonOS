@@ -95,7 +95,8 @@ jobs:
           SHORT_SHA="${SHORT_SHA:0:7}"
 
           # Delete the old release and its tag before reusing the tag name
-          gh release delete dev --cleanup-tag --yes 2>/dev/null || true
+          gh release delete dev --yes 2>/dev/null || true
+          gh api -X DELETE repos/CarlosDev-max/HorizonOS/git/refs/tags/dev 2>/dev/null || true
 
           # Small wait so GitHub processes the deletion
           sleep 2
