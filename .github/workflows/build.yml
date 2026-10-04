@@ -90,26 +90,53 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_SHA: ${{ github.sha }}
         run: |
-          SHORT_SHA="${{ github.sha }}"
-          SHORT_SHA="${SHORT_SHA:0:7}"
-
-          # Delete the old release and its tag before reusing the tag name
-          gh release delete dev --yes 2>/dev/null || true
-          gh api -X DELETE repos/CarlosDev-max/HorizonOS/git/refs/tags/dev 2>/dev/null || true
-
-          # Small wait so GitHub processes the deletion
-          sleep 2
-
-          # Create fresh release — gh creates the tag on current HEAD automatically
-          gh release create dev \
-            --title "HorizonOS dev — ${SHORT_SHA}" \
-            --notes "Automatic build from commit ${SHORT_SHA}. Download horizonos.uf2 for Wokwi CLI or real hardware." \
-            --prerelease \
-            build/horizonos.uf2 \
-            build/horizonos.elf
-
-          echo "Release: $(gh release view dev --json url -q .url)"
+          python3 - << 'PYEOF'
+          import os, json, urllib.request, urllib.error, time
+          TOKEN = os.environ["GITHUB_TOKEN"]
+          SHA   = os.environ["COMMIT_SHA"][:7]
+          REPO  = "CarlosDev-max/HorizonOS"
+          def api(path, method="GET", payload=None, raw=None):
+              url = f"https://api.github.com{path}"
+              body = json.dumps(payload).encode() if payload else raw
+              req = urllib.request.Request(url, data=body, method=method, headers={
+                  "Authorization": f"Bearer {TOKEN}",
+                  "Content-Type": "application/json" if not raw else "application/octet-stream",
+                  "Accept": "application/vnd.github+json"
+              })
+              try:
+                  with urllib.request.urlopen(req) as r: return r.status, json.loads(r.read() or b"{}")
+              except urllib.error.HTTPError as e: return e.code, json.loads(e.read() or b"{}")
+          # Delete existing release
+          sc, rels = api(f"/repos/{REPO}/releases")
+          if sc == 200:
+              for r in rels:
+                  if r.get("tag_name") == "dev":
+                      api(f"/repos/{REPO}/releases/{r[chr(39)]id{chr(39)}}", "DELETE"); print("deleted release")
+                      break
+          api(f"/repos/{REPO}/git/refs/tags/dev", "DELETE"); print("deleted tag")
+          time.sleep(3)
+          # Create release
+          sc, rel = api(f"/repos/{REPO}/releases", "POST", {
+              "tag_name": "dev", "target_commitish": "main",
+              "name": f"HorizonOS dev — {SHA}",
+              "body": f"Build {SHA}. horizonos.uf2 = hardware | horizonos_sim.exe = Windows",
+              "draft": False, "prerelease": True
+          })
+          print(f"Created: HTTP {sc} {rel.get(chr(39)html_url{chr(39)}, rel)}")
+          if sc not in (200,201): raise SystemExit(1)
+          upload = rel["upload_url"].split("{")[0]
+          for f in ["build/horizonos.uf2","build/horizonos.elf"]:
+              nm = os.path.basename(f)
+              with open(f,"rb") as fh: data=fh.read()
+              req2 = urllib.request.Request(f"{upload}?name={nm}", data=data, method="POST", headers={
+                  "Authorization":f"Bearer {TOKEN}","Content-Type":"application/octet-stream",
+                  "Accept":"application/vnd.github+json"})
+              with urllib.request.urlopen(req2) as r: a=json.loads(r.read())
+              print(f"Uploaded {nm}: {a[chr(39)browser_download_url{chr(39)]}")
+          print("Release published.")
+          PYEOF
 
   build-sim:
     runs-on: ubuntu-22.04
