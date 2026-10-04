@@ -92,24 +92,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
-          python3 - << 'PYEOF'
-          import os, json, urllib.request, urllib.error, time
-          TOKEN = os.environ["GITHUB_TOKEN"]
-          SHA   = os.environ["COMMIT_SHA"][:7]
-          REPO  = "CarlosDev-max/HorizonOS"
-          def api(path, method="GET", payload=None, raw=None):
-              url = f"https://api.github.com{path}"
-              body = json.dumps(payload).encode() if payload else raw
-              req = urllib.request.Request(url, data=body, method=method, headers={
-                  "Authorization": f"Bearer {TOKEN}",
-                  "Content-Type": "application/json" if not raw else "application/octet-stream",
-                  "Accept": "application/vnd.github+json"
-              })
-              try:
-                  with urllib.request.urlopen(req) as r: return r.status, json.loads(r.read() or b"{}")
-              except urllib.error.HTTPError as e: return e.code, json.loads(e.read() or b"{}")
-          # Delete existing release
-          sc, rels = api(f"/repos/{REPO}/releases")
+          python3 scripts/publish_release.py \
+            build/horizonos.uf2 \
+            build/horizonos.elf
+
           if sc == 200:
               for r in rels:
                   if r.get("tag_name") == "dev":
