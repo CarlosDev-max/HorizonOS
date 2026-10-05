@@ -3,35 +3,43 @@ project(HorizonOS_Sim C)
 set(CMAKE_C_STANDARD 11)
 
 # ── SDL2 ──────────────────────────────────────────────────────────────────────
+# On MSYS2/MINGW64 or Linux with libsdl2-dev: use find_package
+# For cross-compile CI with explicit paths, SDL2_INCLUDE_DIR/SDL2_LIBRARY can be set via -D
 if(DEFINED SDL2_INCLUDE_DIR AND DEFINED SDL2_LIBRARY)
-    # Provided explicitly (cross-compile from CI)
     include_directories(${SDL2_INCLUDE_DIR})
-    set(SDL2_LIBS ${SDL2_LIBRARY} ${SDL2_MAIN_LIBRARY})
+    set(SDL2_LIBS ${SDL2_LIBRARY})
+    if(DEFINED SDL2_MAIN_LIBRARY)
+        list(PREPEND SDL2_LIBS ${SDL2_MAIN_LIBRARY})
+    endif()
 else()
     find_package(SDL2 REQUIRED)
-    include_directories(${SDL2_INCLUDE_DIRS})
-    set(SDL2_LIBS ${SDL2_LIBRARIES})
+    if(TARGET SDL2::SDL2)
+        # Modern CMake SDL2 targets (MSYS2 SDL2 2.x)
+        set(SDL2_LIBS SDL2::SDL2main SDL2::SDL2)
+    else()
+        include_directories(${SDL2_INCLUDE_DIRS})
+        set(SDL2_LIBS ${SDL2_LIBRARIES})
+    endif()
 endif()
 
 # ── Include paths ─────────────────────────────────────────────────────────────
 include_directories(
-    ${CMAKE_SOURCE_DIR}/../src          # "hal/display.h", "gui/...", "kernel/..."
-    ${CMAKE_SOURCE_DIR}/../src/hal      # "display.h", "input.h", "sound.h" ...
-    ${CMAKE_SOURCE_DIR}/../src/gui      # "window_manager.h", "widgets.h", "theme.h"
-    ${CMAKE_SOURCE_DIR}/../src/kernel   # "scheduler.h", "memory.h" ...
-    ${CMAKE_SOURCE_DIR}/../src/services # "event_bus.h", "app_manager.h"
-    ${CMAKE_SOURCE_DIR}/../src/apps     # "home.h", "files.h" ...
-    ${CMAKE_SOURCE_DIR}/stubs           # "pico/stdlib.h", "hardware/gpio.h", "lfs.h"
-    ${CMAKE_SOURCE_DIR}/hal             # "input_sim.h"
+    ${CMAKE_SOURCE_DIR}/../src
+    ${CMAKE_SOURCE_DIR}/../src/hal
+    ${CMAKE_SOURCE_DIR}/../src/gui
+    ${CMAKE_SOURCE_DIR}/../src/kernel
+    ${CMAKE_SOURCE_DIR}/../src/services
+    ${CMAKE_SOURCE_DIR}/../src/apps
+    ${CMAKE_SOURCE_DIR}/stubs
+    ${CMAKE_SOURCE_DIR}/hal
 )
 
-# ── Source files ──────────────────────────────────────────────────────────────
-# OS kernel (skip fs.c — needs LittleFS, not required for sim)
+# ── Sources ───────────────────────────────────────────────────────────────────
 set(KERNEL_SRC
     ../src/kernel/scheduler.c
     ../src/kernel/memory.c
     ../src/kernel/shell.c
-    ../src/kernel/fs.c          # compiled with stub lfs.h — just won't mount
+    ../src/kernel/fs.c
 )
 set(GUI_SRC
     ../src/gui/window_manager.c
@@ -58,17 +66,11 @@ set(SIM_SRC
 )
 
 add_executable(horizonos_sim
-    ${KERNEL_SRC}
-    ${GUI_SRC}
-    ${SERVICES_SRC}
-    ${APPS_SRC}
-    ${SIM_SRC}
+    ${KERNEL_SRC} ${GUI_SRC} ${SERVICES_SRC} ${APPS_SRC} ${SIM_SRC}
 )
 
 target_link_libraries(horizonos_sim ${SDL2_LIBS})
 
-# Windows: suppress console window (show only the SDL2 window)
 if(WIN32)
     set_target_properties(horizonos_sim PROPERTIES WIN32_EXECUTABLE TRUE)
-    target_link_libraries(horizonos_sim mingw32)
 endif()
