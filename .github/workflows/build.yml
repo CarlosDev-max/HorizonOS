@@ -113,25 +113,29 @@ jobs:
 
       - name: Download SDL2 for MinGW
         run: |
-          wget -q https://github.com/libsdl-org/SDL/releases/download/release-2.28.5/SDL2-devel-2.28.5-mingw.tar.gz
-          tar xzf SDL2-devel-2.28.5-mingw.tar.gz
+          # curl -f fails loudly on HTTP errors (wget -q silently saves HTML as a file)
+          curl -fsSL \
+            "https://github.com/libsdl-org/SDL/releases/download/release-2.28.5/SDL2-devel-2.28.5-mingw.tar.gz" \
+            -o SDL2-mingw.tar.gz
+          echo "Downloaded: $(ls -lh SDL2-mingw.tar.gz)"
+          file SDL2-mingw.tar.gz
+          tar xzf SDL2-mingw.tar.gz
+          ls SDL2-2.28.5/x86_64-w64-mingw32/lib/ | head -5
           echo "SDL2_ROOT=$PWD/SDL2-2.28.5/x86_64-w64-mingw32" >> $GITHUB_ENV
 
       - name: Build Windows simulator
         run: |
           echo "SDL2_ROOT=$SDL2_ROOT"
-          ls "$SDL2_ROOT/include/SDL2/" | head -5
-          ls "$SDL2_ROOT/lib/" | head -10
+          ls "$SDL2_ROOT/lib/" | grep SDL2
 
           cmake sim/ -B build_sim \
             -DCMAKE_TOOLCHAIN_FILE=sim/cmake/mingw64.cmake \
             -DCMAKE_BUILD_TYPE=Release \
-            -DSDL2_INCLUDE_DIR="$SDL2_ROOT/include/SDL2" \
+            -DSDL2_INCLUDE_DIR="$SDL2_ROOT/include" \
             -DSDL2_LIBRARY="$SDL2_ROOT/lib/libSDL2.dll.a" \
-            -DSDL2_MAIN_LIBRARY="$SDL2_ROOT/lib/libSDL2main.a" \
-            2>&1 | tee /tmp/sim_cmake.txt
+            -DSDL2_MAIN_LIBRARY="$SDL2_ROOT/lib/libSDL2main.a"
 
-          cmake --build build_sim --parallel $(nproc) 2>&1 | tee /tmp/sim_build.txt
+          cmake --build build_sim --parallel $(nproc)
           cp "$SDL2_ROOT/bin/SDL2.dll" build_sim/
           ls -lh build_sim/horizonos_sim.exe build_sim/SDL2.dll
 
