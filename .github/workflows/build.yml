@@ -96,35 +96,6 @@ jobs:
           python3 scripts/publish_release.py \
             build/horizonos.uf2 \
             build/horizonos.elf
-
-          if sc == 200:
-              for r in rels:
-                  if r.get("tag_name") == "dev":
-                      api(f"/repos/{REPO}/releases/{r[chr(39)]id{chr(39)}}", "DELETE"); print("deleted release")
-                      break
-          api(f"/repos/{REPO}/git/refs/tags/dev", "DELETE"); print("deleted tag")
-          time.sleep(3)
-          # Create release
-          sc, rel = api(f"/repos/{REPO}/releases", "POST", {
-              "tag_name": "dev", "target_commitish": "main",
-              "name": f"HorizonOS dev — {SHA}",
-              "body": f"Build {SHA}. horizonos.uf2 = hardware | horizonos_sim.exe = Windows",
-              "draft": False, "prerelease": True
-          })
-          print(f"Created: HTTP {sc} {rel.get(chr(39)html_url{chr(39)}, rel)}")
-          if sc not in (200,201): raise SystemExit(1)
-          upload = rel["upload_url"].split("{")[0]
-          for f in ["build/horizonos.uf2","build/horizonos.elf"]:
-              nm = os.path.basename(f)
-              with open(f,"rb") as fh: data=fh.read()
-              req2 = urllib.request.Request(f"{upload}?name={nm}", data=data, method="POST", headers={
-                  "Authorization":f"Bearer {TOKEN}","Content-Type":"application/octet-stream",
-                  "Accept":"application/vnd.github+json"})
-              with urllib.request.urlopen(req2) as r: a=json.loads(r.read())
-              print(f"Uploaded {nm}: {a[chr(39)browser_download_url{chr(39)]}")
-          print("Release published.")
-          PYEOF
-
   build-sim:
     runs-on: ubuntu-22.04
     needs: build
