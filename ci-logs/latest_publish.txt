@@ -1,8 +1,8 @@
 List releases: HTTP 200, count=1
-Deleted release 402841353: HTTP 204
+Deleted release 402842851: HTTP 204
 Delete tag: HTTP 204 {}
 Create release: HTTP 201 — https://github.com/CarlosDev-max/HorizonOS/releases/tag/dev
-Upload URL: https://uploads.github.com/repos/CarlosDev-max/HorizonOS/releases/402842851/assets
+Upload URL: https://uploads.github.com/repos/CarlosDev-max/HorizonOS/releases/403290134/assets
 Uploading horizonos.uf2 (692224 bytes)...
   OK: https://github.com/CarlosDev-max/HorizonOS/releases/download/dev/horizonos.uf2
 Uploading horizonos.elf (473232 bytes)...
