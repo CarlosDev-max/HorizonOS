@@ -119,14 +119,20 @@ jobs:
 
       - name: Build Windows simulator
         run: |
+          echo "SDL2_ROOT=$SDL2_ROOT"
+          ls "$SDL2_ROOT/include/SDL2/" | head -5
+          ls "$SDL2_ROOT/lib/" | head -10
+
           cmake sim/ -B build_sim \
             -DCMAKE_TOOLCHAIN_FILE=sim/cmake/mingw64.cmake \
             -DCMAKE_BUILD_TYPE=Release \
-            -DSDL2_INCLUDE_DIR="$SDL2_ROOT/include" \
+            -DSDL2_INCLUDE_DIR="$SDL2_ROOT/include/SDL2" \
             -DSDL2_LIBRARY="$SDL2_ROOT/lib/libSDL2.dll.a" \
-            -DSDL2_MAIN_LIBRARY="$SDL2_ROOT/lib/libSDL2main.a"
-          cmake --build build_sim --parallel $(nproc)
-          cp $SDL2_ROOT/bin/SDL2.dll build_sim/
+            -DSDL2_MAIN_LIBRARY="$SDL2_ROOT/lib/libSDL2main.a" \
+            2>&1 | tee /tmp/sim_cmake.txt
+
+          cmake --build build_sim --parallel $(nproc) 2>&1 | tee /tmp/sim_build.txt
+          cp "$SDL2_ROOT/bin/SDL2.dll" build_sim/
           ls -lh build_sim/horizonos_sim.exe build_sim/SDL2.dll
 
       - name: Add sim to release
