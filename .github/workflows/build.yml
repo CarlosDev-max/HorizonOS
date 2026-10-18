@@ -121,12 +121,19 @@ jobs:
 
       - name: Build Windows simulator
         run: |
-          cmake sim/ -B build_sim \
-            -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release
-          cmake --build build_sim
-          cp /mingw64/bin/SDL2.dll build_sim/
-          ls -lh build_sim/horizonos_sim.exe build_sim/SDL2.dll
+          cmake sim/ -B build_sim -G 'MinGW Makefiles' -DCMAKE_BUILD_TYPE=Release 2>&1 | tee C:/sim_cmake.txt
+          cmake --build build_sim --parallel 2 2>&1 | tee C:/sim_build.txt
+          cp /mingw64/bin/SDL2.dll build_sim/ 2>&1 || true
+          ls -lh build_sim/ 2>&1 || true
+
+      - name: Push sim log
+        if: always()
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat C:/sim_cmake.txt C:/sim_build.txt > /tmp/simlog.txt 2>/dev/null || echo 'no log' > /tmp/simlog.txt
+          python3 scripts/push_log.py /tmp/simlog.txt ci-logs/sim_build.txt
 
       - name: Add sim to release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
