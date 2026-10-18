@@ -9,17 +9,16 @@
 */
 
 #define WIN32_LEAN_AND_MEAN
-#define _WIN32_WINNT 0x0601   // Windows 7+
+#define NOMINMAX
+#define _WIN32_WINNT 0x0601
 #include <windows.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
 
-/* ── Display geometry ────────────────────────────────────────────────────── */
-#define DISPLAY_W  320
-#define DISPLAY_H  240
-#define SCALE      2          // window = 640×480
+/* ── Display geometry (DISPLAY_W/H come from display.h) ─────────────────── */
+#define SCALE  2    // window = 640x480
 
 /* ── Framebuffer (RGB565) — written by all display_* functions ───────────── */
 static uint16_t fb[DISPLAY_H * DISPLAY_W];
