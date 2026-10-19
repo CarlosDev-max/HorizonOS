@@ -1,1 +1,191 @@
-no log
+=== HorizonOS Windows Simulator Build ===
+Compiler: x86_64-w64-mingw32-gcc (GCC) 10-win32 20220113
+Sources:  18 files
+sim/sim_gdi.c:24:20: error: ‘DISPLAY_H’ undeclared here (not in a function)
+   24 | static uint16_t fb[DISPLAY_H * DISPLAY_W];
+      |                    ^~~~~~~~~
+sim/sim_gdi.c:24:32: error: ‘DISPLAY_W’ undeclared here (not in a function)
+   24 | static uint16_t fb[DISPLAY_H * DISPLAY_W];
+      |                                ^~~~~~~~~
+In file included from sim/sim_gdi.c:41:
+src/hal/display.h:28: warning: "RGB" redefined
+   28 | #define RGB(r,g,b) ((uint16_t)(((r&0xF8u)<<8)|((g&0xFCu)<<3)|((b)>>3)))
+      | 
+In file included from /usr/share/mingw-w64/include/windows.h:71,
+                 from sim/sim_gdi.c:14:
+/usr/share/mingw-w64/include/wingdi.h:1397: note: this is the location of the previous definition
+ 1397 | #define RGB(r,g,b) ((COLORREF)(((BYTE)(r)|((WORD)((BYTE)(g))<<8))|(((DWORD)(BYTE)(b))<<16)))
+      | 
+sim/sim_gdi.c:24:17: warning: ‘fb’ defined but not used [-Wunused-variable]
+   24 | static uint16_t fb[DISPLAY_H * DISPLAY_W];
+      |                 ^~
+src/kernel/fs.c:20:40: warning: ‘struct lfs_config’ declared inside parameter list will not be visible outside of this definition or declaration
+   20 | static int lfs_flash_read(const struct lfs_config* c,
+      |                                        ^~~~~~~~~~
+src/kernel/fs.c: In function ‘lfs_flash_read’:
+src/kernel/fs.c:25:17: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+   25 |     memcpy(buf, (const void*)addr, size);
+      |                 ^
+src/kernel/fs.c: At top level:
+src/kernel/fs.c:29:40: warning: ‘struct lfs_config’ declared inside parameter list will not be visible outside of this definition or declaration
+   29 | static int lfs_flash_prog(const struct lfs_config* c,
+      |                                        ^~~~~~~~~~
+src/kernel/fs.c:40:41: warning: ‘struct lfs_config’ declared inside parameter list will not be visible outside of this definition or declaration
+   40 | static int lfs_flash_erase(const struct lfs_config* c, lfs_block_t block) {
+      |                                         ^~~~~~~~~~
+src/kernel/fs.c:49:40: warning: ‘struct lfs_config’ declared inside parameter list will not be visible outside of this definition or declaration
+   49 | static int lfs_flash_sync(const struct lfs_config* c) {
+      |                                        ^~~~~~~~~~
+src/kernel/fs.c:54:21: error: variable ‘LFS_CFG’ has initializer but incomplete type
+   54 | static const struct lfs_config LFS_CFG = {
+      |                     ^~~~~~~~~~
+src/kernel/fs.c:55:6: error: ‘const struct lfs_config’ has no member named ‘read’
+   55 |     .read  = lfs_flash_read,
+      |      ^~~~
+src/kernel/fs.c:55:14: warning: excess elements in struct initializer
+   55 |     .read  = lfs_flash_read,
+      |              ^~~~~~~~~~~~~~
+src/kernel/fs.c:55:14: note: (near initialization for ‘LFS_CFG’)
+src/kernel/fs.c:56:6: error: ‘const struct lfs_config’ has no member named ‘prog’
+   56 |     .prog  = lfs_flash_prog,
+      |      ^~~~
+src/kernel/fs.c:56:14: warning: excess elements in struct initializer
+   56 |     .prog  = lfs_flash_prog,
+      |              ^~~~~~~~~~~~~~
+src/kernel/fs.c:56:14: note: (near initialization for ‘LFS_CFG’)
+src/kernel/fs.c:57:6: error: ‘const struct lfs_config’ has no member named ‘erase’
+   57 |     .erase = lfs_flash_erase,
+      |      ^~~~~
+src/kernel/fs.c:57:14: warning: excess elements in struct initializer
+   57 |     .erase = lfs_flash_erase,
+      |              ^~~~~~~~~~~~~~~
+src/kernel/fs.c:57:14: note: (near initialization for ‘LFS_CFG’)
+src/kernel/fs.c:58:6: error: ‘const struct lfs_config’ has no member named ‘sync’
+   58 |     .sync  = lfs_flash_sync,
+      |      ^~~~
+src/kernel/fs.c:58:14: warning: excess elements in struct initializer
+   58 |     .sync  = lfs_flash_sync,
+      |              ^~~~~~~~~~~~~~
+src/kernel/fs.c:58:14: note: (near initialization for ‘LFS_CFG’)
+src/kernel/fs.c:59:6: error: ‘const struct lfs_config’ has no member named ‘read_size’
+   59 |     .read_size      = 1,
+      |      ^~~~~~~~~
+src/kernel/fs.c:59:23: warning: excess elements in struct initializer
+   59 |     .read_size      = 1,
+      |                       ^
+src/kernel/fs.c:59:23: note: (near initialization for ‘LFS_CFG’)
+src/kernel/fs.c:60:6: error: ‘const struct lfs_config’ has no member named ‘prog_size’
+   60 |     .prog_size      = FLASH_PAGE_SIZE,
+      |      ^~~~~~~~~
+In file included from src/kernel/fs.c:3:
+sim/stubs/hardware/flash.h:4:27: warning: excess elements in struct initializer
+    4 | #define FLASH_PAGE_SIZE   256
+      |                           ^~~
+src/kernel/fs.c:60:23: note: in expansion of macro ‘FLASH_PAGE_SIZE’
+   60 |     .prog_size      = FLASH_PAGE_SIZE,
+      |                       ^~~~~~~~~~~~~~~
+sim/stubs/hardware/flash.h:4:27: note: (near initialization for ‘LFS_CFG’)
+    4 | #define FLASH_PAGE_SIZE   256
+      |                           ^~~
+src/kernel/fs.c:60:23: note: in expansion of macro ‘FLASH_PAGE_SIZE’
+   60 |     .prog_size      = FLASH_PAGE_SIZE,
+      |                       ^~~~~~~~~~~~~~~
+src/kernel/fs.c:61:6: error: ‘const struct lfs_config’ has no member named ‘block_size’
+   61 |     .block_size     = FS_BLOCK_SIZE,
+      |      ^~~~~~~~~~
+In file included from src/kernel/fs.c:3:
+sim/stubs/hardware/flash.h:3:27: warning: excess elements in struct initializer
+    3 | #define FLASH_SECTOR_SIZE 4096
+      |                           ^~~~
+src/kernel/fs.c:11:26: note: in expansion of macro ‘FLASH_SECTOR_SIZE’
+   11 | #define FS_BLOCK_SIZE    FLASH_SECTOR_SIZE
+      |                          ^~~~~~~~~~~~~~~~~
+src/kernel/fs.c:61:23: note: in expansion of macro ‘FS_BLOCK_SIZE’
+   61 |     .block_size     = FS_BLOCK_SIZE,
+      |                       ^~~~~~~~~~~~~
+sim/stubs/hardware/flash.h:3:27: note: (near initialization for ‘LFS_CFG’)
+    3 | #define FLASH_SECTOR_SIZE 4096
+      |                           ^~~~
+src/kernel/fs.c:11:26: note: in expansion of macro ‘FLASH_SECTOR_SIZE’
+   11 | #define FS_BLOCK_SIZE    FLASH_SECTOR_SIZE
+      |                          ^~~~~~~~~~~~~~~~~
+src/kernel/fs.c:61:23: note: in expansion of macro ‘FS_BLOCK_SIZE’
+   61 |     .block_size     = FS_BLOCK_SIZE,
+      |                       ^~~~~~~~~~~~~
+src/kernel/fs.c:62:6: error: ‘const struct lfs_config’ has no member named ‘block_count’
+   62 |     .block_count    = FS_BLOCK_COUNT,
+      |      ^~~~~~~~~~~
+src/kernel/fs.c:12:26: warning: excess elements in struct initializer
+   12 | #define FS_BLOCK_COUNT   (1024u * 1024u / FS_BLOCK_SIZE)
+      |                          ^
+src/kernel/fs.c:62:23: note: in expansion of macro ‘FS_BLOCK_COUNT’
+   62 |     .block_count    = FS_BLOCK_COUNT,
+      |                       ^~~~~~~~~~~~~~
+src/kernel/fs.c:12:26: note: (near initialization for ‘LFS_CFG’)
+   12 | #define FS_BLOCK_COUNT   (1024u * 1024u / FS_BLOCK_SIZE)
+      |                          ^
+src/kernel/fs.c:62:23: note: in expansion of macro ‘FS_BLOCK_COUNT’
+   62 |     .block_count    = FS_BLOCK_COUNT,
+      |                       ^~~~~~~~~~~~~~
+src/kernel/fs.c:63:6: error: ‘const struct lfs_config’ has no member named ‘cache_size’
+   63 |     .cache_size     = FLASH_PAGE_SIZE,
+      |      ^~~~~~~~~~
+In file included from src/kernel/fs.c:3:
+sim/stubs/hardware/flash.h:4:27: warning: excess elements in struct initializer
+    4 | #define FLASH_PAGE_SIZE   256
+      |                           ^~~
+src/kernel/fs.c:63:23: note: in expansion of macro ‘FLASH_PAGE_SIZE’
+   63 |     .cache_size     = FLASH_PAGE_SIZE,
+      |                       ^~~~~~~~~~~~~~~
+sim/stubs/hardware/flash.h:4:27: note: (near initialization for ‘LFS_CFG’)
+    4 | #define FLASH_PAGE_SIZE   256
+      |                           ^~~
+src/kernel/fs.c:63:23: note: in expansion of macro ‘FLASH_PAGE_SIZE’
+   63 |     .cache_size     = FLASH_PAGE_SIZE,
+      |                       ^~~~~~~~~~~~~~~
+src/kernel/fs.c:64:6: error: ‘const struct lfs_config’ has no member named ‘lookahead_size’
+   64 |     .lookahead_size = 16,
+      |      ^~~~~~~~~~~~~~
+src/kernel/fs.c:64:23: warning: excess elements in struct initializer
+   64 |     .lookahead_size = 16,
+      |                       ^~
+src/kernel/fs.c:64:23: note: (near initialization for ‘LFS_CFG’)
+src/kernel/fs.c:65:6: error: ‘const struct lfs_config’ has no member named ‘block_cycles’
+   65 |     .block_cycles   = 500,
+      |      ^~~~~~~~~~~~
+src/kernel/fs.c:65:23: warning: excess elements in struct initializer
+   65 |     .block_cycles   = 500,
+      |                       ^~~
+src/kernel/fs.c:65:23: note: (near initialization for ‘LFS_CFG’)
+src/kernel/fs.c: In function ‘fs_init’:
+src/kernel/fs.c:71:31: warning: passing argument 2 of ‘lfs_mount’ from incompatible pointer type [-Wincompatible-pointer-types]
+   71 |     int err = lfs_mount(&lfs, &LFS_CFG);
+      |                               ^~~~~~~~
+      |                               |
+      |                               const struct lfs_config *
+In file included from src/kernel/fs.c:2:
+sim/stubs/lfs.h:13:57: note: expected ‘const lfs_config *’ but argument is of type ‘const struct lfs_config *’
+   13 | static inline int lfs_mount(lfs_t* l, const lfs_config* c)  { (void)l;(void)c; return -1; }
+      |                                       ~~~~~~~~~~~~~~~~~~^
+src/kernel/fs.c:74:26: warning: passing argument 2 of ‘lfs_format’ from incompatible pointer type [-Wincompatible-pointer-types]
+   74 |         lfs_format(&lfs, &LFS_CFG);
+      |                          ^~~~~~~~
+      |                          |
+      |                          const struct lfs_config *
+In file included from src/kernel/fs.c:2:
+sim/stubs/lfs.h:14:58: note: expected ‘const lfs_config *’ but argument is of type ‘const struct lfs_config *’
+   14 | static inline int lfs_format(lfs_t* l, const lfs_config* c) { (void)l;(void)c; return -1; }
+      |                                        ~~~~~~~~~~~~~~~~~~^
+src/kernel/fs.c:75:31: warning: passing argument 2 of ‘lfs_mount’ from incompatible pointer type [-Wincompatible-pointer-types]
+   75 |         err = lfs_mount(&lfs, &LFS_CFG);
+      |                               ^~~~~~~~
+      |                               |
+      |                               const struct lfs_config *
+In file included from src/kernel/fs.c:2:
+sim/stubs/lfs.h:13:57: note: expected ‘const lfs_config *’ but argument is of type ‘const struct lfs_config *’
+   13 | static inline int lfs_mount(lfs_t* l, const lfs_config* c)  { (void)l;(void)c; return -1; }
+      |                                       ~~~~~~~~~~~~~~~~~~^
+src/kernel/fs.c: At top level:
+src/kernel/fs.c:54:32: error: storage size of ‘LFS_CFG’ isn’t known
+   54 | static const struct lfs_config LFS_CFG = {
+      |                                ^~~~~~~
