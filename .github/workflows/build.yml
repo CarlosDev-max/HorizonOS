@@ -109,37 +109,10 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y gcc-mingw-w64-x86-64
 
-      - name: Build Windows simulator (GDI, zero external deps)
+      - name: Build Windows simulator
         run: |
-          x86_64-w64-mingw32-gcc -O2 -std=c11 -Wall \
-            -I src -I src/hal -I src/gui -I src/kernel \
-            -I src/services -I src/apps \
-            -I sim/stubs -I sim/hal \
-            -D_WIN32_WINNT=0x0601 \
-            sim/sim_gdi.c \
-            sim/sim_stubs_win.c \
-            sim/hal/input_sim.c \
-            sim/hal/sound_sim.c \
-            sim/hal/touch_sim.c \
-            sim/hal/wifi_sim.c \
-            src/kernel/scheduler.c \
-            src/kernel/memory.c \
-            src/kernel/shell.c \
-            src/kernel/fs.c \
-            src/gui/window_manager.c \
-            src/gui/widgets.c \
-            src/services/event_bus.c \
-            src/services/app_manager.c \
-            src/apps/home.c \
-            src/apps/files.c \
-            src/apps/settings.c \
-            src/apps/network.c \
-            -o horizonos_sim.exe \
-            -mwindows -lgdi32 -luser32 \
-            2>&1 | tee /tmp/sim_build.txt
-          EXIT=${PIPESTATUS[0]}
-          ls -lh horizonos_sim.exe 2>/dev/null || true
-          exit $EXIT
+          bash scripts/build_sim_win.sh 2>&1 | tee /tmp/sim_build.txt
+          exit ${PIPESTATUS[0]}
 
       - name: Push build log
         if: always()
@@ -154,4 +127,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload dev horizonos_sim.exe --clobber
-          echo "horizonos_sim.exe uploaded (standalone, no DLLs needed)"
+          echo "Uploaded horizonos_sim.exe (standalone — no DLLs needed)"
