@@ -1,6 +1,3 @@
-=== HorizonOS Windows Simulator Build ===
-Compiler: x86_64-w64-mingw32-gcc (GCC) 10-win32 20220113
-Sources:  18 files
 sim/sim_gdi.c:24:20: error: ‘DISPLAY_H’ undeclared here (not in a function)
    24 | static uint16_t fb[DISPLAY_H * DISPLAY_W];
       |                    ^~~~~~~~~
